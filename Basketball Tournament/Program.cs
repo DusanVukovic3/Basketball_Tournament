@@ -20,7 +20,7 @@ foreach (var g in groups)
 }
 
 
-Random random = new();  
+Random random = new();  //s
 
 foreach (var group in groups)
 {
