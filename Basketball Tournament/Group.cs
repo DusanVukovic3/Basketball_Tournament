@@ -6,16 +6,9 @@ using System.Threading.Tasks;
 
 namespace Basketball_Tournament
 {
-    public class Group
+    public class Group(string groupName, List<Tim> teams)
     {
-        public string GroupName { get; set; }
-        public List<Tim> Teams { get; set; }
-
-        public Group(string groupName, List<Tim> teams)
-        {
-            GroupName = groupName;
-            Teams = teams;
-        }
-
+        public string GroupName { get; set; } = groupName;
+        public List<Tim> Teams { get; set; } = teams;
     }
 }

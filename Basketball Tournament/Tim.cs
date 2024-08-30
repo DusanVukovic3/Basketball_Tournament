@@ -8,9 +8,12 @@ namespace Basketball_Tournament
 {
     public class Tim
     {
-        public string Team { get; set; }
-        public string ISOCode { get; set; }
-        public int FIBARanking {  get; set; }
+        public string Team { get; set; } = "";
+        public string ISOCode { get; set; } = "";
+        public int FIBARanking { get; set; }
+        public int PointsScored { get; set; }
+        public int PointsConceded {  get; set; }
+        public int PointsInGroup {  get; set; }
 
         public Tim(string team, string iSOCode, int fIBARanking)
         {
@@ -18,7 +21,14 @@ namespace Basketball_Tournament
             ISOCode = iSOCode;
             FIBARanking = fIBARanking;
         }
+
+        public Tim() { }
+
     }
+
+
+
+
 
 
 
