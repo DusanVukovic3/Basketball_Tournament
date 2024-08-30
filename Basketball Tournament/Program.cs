@@ -6,18 +6,7 @@ string filePath = Path.Combine(projectDirectory, "Data", "groups.json");
 string jsonString = File.ReadAllText(filePath);
 
 Dictionary<string, List<Tim>>? groupDictionary = JsonSerializer.Deserialize<Dictionary<string, List<Tim>>>(jsonString); //  A, B, C are keys; this will work if more groups are added 
-
 List<Group> groups = groupDictionary?.Select(g => new Group(g.Key, g.Value)).ToList() ?? []; // Convert the dictionary into list of groups and later write them
-
-/*foreach (var g in groups)
-{
-    Console.WriteLine($"Group: {g.GroupName}");
-    foreach (var team in g.Teams)
-    {
-        Console.WriteLine($"  Team: {team.Team}, ISOCode: {team.ISOCode}, FIBARanking: {team.FIBARanking}");
-    }
-    Console.WriteLine(); 
-}*/
 
 
 Random random = new(); 
@@ -36,10 +25,12 @@ foreach (var group in groups)
     groupPoints[group.GroupName] = group.Teams.ToDictionary(t => t.Team, t => 0);   
 }
 
+
 int num = 1;
 
 foreach (var leg in legs)   // Each team plays every other in group, 3 total games per team
 {
+    
     Console.WriteLine($"\n{num}. Leg:");
 
     foreach (var group in groups)
@@ -53,31 +44,47 @@ foreach (var leg in legs)   // Each team plays every other in group, 3 total gam
             var teamA = teams[i];
             var teamB = teams[j];
 
-            double probabilityTeamAWins = (double)teamB.FIBARanking / (teamA.FIBARanking + teamB.FIBARanking);  // Probability calculation
-            double randomValue = random.NextDouble();   // 0.0 - 1.0
+            double forfeitChance = 0.05;
+            double randomForfeitValue = random.NextDouble();  // 5% chance that every team can forfeit the game
 
-            string winner = randomValue < probabilityTeamAWins ? teamA.Team : teamB.Team;
-
-            if (winner == teamA.Team)   // Add points after every match
+            if (randomForfeitValue < forfeitChance)
             {
+                Console.WriteLine($"{teamA.Team} forfeits the match against {teamB.Team}.");
+                teamPoints[teamA.Team] += 0;  // Forfeiting gets you 0pt
+                teamPoints[teamB.Team] += 2;
+            }
+            else if (randomForfeitValue >= forfeitChance && randomForfeitValue < 2 * forfeitChance)
+            {
+                Console.WriteLine($"{teamB.Team} forfeits the match against {teamA.Team}.");
                 teamPoints[teamA.Team] += 2;
-                teamPoints[teamB.Team] += 1;
+                teamPoints[teamB.Team] += 0;
             }
             else
             {
-                teamPoints[teamA.Team] += 1;
-                teamPoints[teamB.Team] += 2;
-            }
+                double probabilityTeamAWins = (double)teamB.FIBARanking / (teamA.FIBARanking + teamB.FIBARanking);  // Probability calculation
+                double randomValue = random.NextDouble();   // 0.0 - 1.0
 
-            Console.WriteLine($"{teamA.Team} vs {teamB.Team}: Winner is {winner}");
+                string winner = randomValue < probabilityTeamAWins ? teamA.Team : teamB.Team;
+
+
+                if (winner == teamA.Team)
+                {
+                    teamPoints[teamA.Team] += 2;
+                    teamPoints[teamB.Team] += 1;
+                }
+                else
+                {
+                    teamPoints[teamA.Team] += 1;
+                    teamPoints[teamB.Team] += 2;
+                }
+
+                Console.WriteLine($"{teamA.Team} vs {teamB.Team}: Winner is {winner}");
+            }
         }
     }
-
     num++;
-
-    
-
 }
+
 
 foreach (var group in groups)
 {
@@ -91,4 +98,6 @@ foreach (var group in groups)
     }
     Console.WriteLine();  
 }
+
+
 
