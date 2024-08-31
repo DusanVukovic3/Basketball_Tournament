@@ -144,10 +144,10 @@ var rank1Teams = new List<Tim>();
 var rank2Teams = new List<Tim>();
 var rank3Teams = new List<Tim>();
 
-// Collect teams by rank from all groups
+
 foreach (var g in groups)
 {
-    rank1Teams.AddRange(g.Teams.Where(t => t.OverallRank == 1));
+    rank1Teams.AddRange(g.Teams.Where(t => t.OverallRank == 1));    //  Collect teams by rank from all groups
     rank2Teams.AddRange(g.Teams.Where(t => t.OverallRank == 2));
     rank3Teams.AddRange(g.Teams.Where(t => t.OverallRank == 3));
 }
@@ -228,11 +228,33 @@ foreach (var teamB in hatB)
     }
 }
 
-Console.WriteLine("Quarterfinal Matches:");
-foreach (var match in quarterfinals)
+
+
+
+Tim t = new();
+
 {
-    Console.WriteLine($"{match.Item1.Team}  {match.Item1.Group.GroupName}) vs {match.Item2.Team}  {match.Item2.Group.GroupName})");
+    Console.WriteLine("\nQUARTERFINALS:");
+    var quarterfinalWinners = t.SimulateRound(quarterfinals);
+
+    Console.WriteLine("\nSEMIFINALS:");
+    var semifinals = new List<(Tim, Tim)>
+{
+    (quarterfinalWinners[0], quarterfinalWinners[1]),  // Winner of QF1 vs Winner of QF2
+    (quarterfinalWinners[2], quarterfinalWinners[3])   // Winner of QF3 vs Winner of QF4
+
+    
+};
+    var semifinalWinners = t.SimulateRound(semifinals);
+
+    Console.WriteLine("\nFINAL:");
+    var finalMatch = (semifinalWinners[0], semifinalWinners[1]);
+    var champion = t.SimulateGame(finalMatch.Item1, finalMatch.Item2);
+
+    Console.WriteLine($"\nCHAMPION: \n{champion.Team} ");
 }
+
+
 
 
 
