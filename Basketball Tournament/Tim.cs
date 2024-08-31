@@ -13,7 +13,12 @@ namespace Basketball_Tournament
         public int FIBARanking { get; set; }
         public int PointsScored { get; set; }
         public int PointsConceded {  get; set; }
+
+        public Group Group { get; set; } = new Group();
         public int PointsInGroup {  get; set; }
+        
+        public int? OverallRank { get; set; } //    After groups rank
+        public int? PointDifferential { get; set; } 
 
         public Tim(string team, string iSOCode, int fIBARanking)
         {
@@ -23,6 +28,8 @@ namespace Basketball_Tournament
         }
 
         public Tim() { }
+
+        
 
     }
 
