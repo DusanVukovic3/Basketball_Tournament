@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Formats.Asn1.AsnWriter;
-
-namespace Basketball_Tournament
+﻿namespace Basketball_Tournament
 {
     public class Tim
     {
@@ -21,25 +14,26 @@ namespace Basketball_Tournament
         public int? OverallRank { get; set; } //    After groups rank
         public int? PointDifferential { get; set; } 
 
-        public Tim(string team, string iSOCode, int fIBARanking)
-        {
-            Team = team;
-            ISOCode = iSOCode;
-            FIBARanking = fIBARanking;
-        }
-
-        public Tim() { }
-
-        
-
         public Tim SimulateGame(Tim team1, Tim team2)
         {
             var random = new Random();
+
             double rankDifference = (double)Math.Abs(team1.FIBARanking - team2.FIBARanking);    // Based on difference in rank, simulate score
             double scoreDifference = rankDifference * random.NextDouble();
 
             int score1 = random.Next(60, 120) + (int)(scoreDifference / 2);  // Team will get at least 60 points and at most 120
             int score2 = random.Next(60, 120) - (int)(scoreDifference / 2);
+
+            while (score1 == score2)
+            {
+                int overtimePointsTeam1 = random.Next(5, 20);   //  teams can get 5-20 points in 1 overtime, the overtime will continue until there is no longer a tie
+                int overtimePointsTeam2 = random.Next(5, 20);   //  I made sure there is no more difference in FIBARanking because if teams get to overtime, that means they're pretty evenly matched
+
+                score1 += overtimePointsTeam1;
+                score2 += overtimePointsTeam2;
+
+                Console.WriteLine($"\nOvertime : {team1.Team} vs {team2.Team} ({overtimePointsTeam1}:{overtimePointsTeam2}) ");
+            }
 
             Console.WriteLine($"{team1.Team} vs {team2.Team} ({score1}:{score2})");
 
@@ -59,13 +53,13 @@ namespace Basketball_Tournament
             }
 
             team1.PointsScored += score1;
-            team2.PointsConceded += score2;
-            team1.PointsScored += score2;
-            team1.PointsConceded += score1;
+            team1.PointsConceded += score2;
+            team2.PointsScored += score2;
+            team2.PointsConceded += score1;
 
-            // Return the winner
-            return score1 > score2 ? team1 : team2;
+            return score1 > score2 ? team1 : team2; //  return team that won
         }
+
 
         public List<Tim> SimulateRound(List<(Tim, Tim)> matches)    //  Get all the winners of the match
         {

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Basketball_Tournament
+﻿namespace Basketball_Tournament
 {
     public class Match
     {
@@ -17,8 +11,6 @@ namespace Basketball_Tournament
             Team1 = team1;
             Team2 = team2;
         }
-
-
 
         public void SetResult(int scoreA, int scoreB)
         {
