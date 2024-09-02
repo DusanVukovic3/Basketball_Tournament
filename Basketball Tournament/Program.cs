@@ -6,7 +6,7 @@ string projectDirectory = Directory.GetParent(Environment.CurrentDirectory)?.Par
 string filePath = Path.Combine(projectDirectory, "Data", "groups.json");
 string jsonString = File.ReadAllText(filePath);
 
-Dictionary<string, List<Tim>>? groupDictionary = JsonSerializer.Deserialize<Dictionary<string, List<Tim>>>(jsonString); //  A, B, C are keys; this will work if more groups are added 
+Dictionary<string, List<Tim>>? groupDictionary = JsonSerializer.Deserialize<Dictionary<string, List<Tim>>>(jsonString); //  A, B, C are keys; thats why I'm using dictionary
 List<Group> groups = groupDictionary?.Select(g => new Group(g.Key, g.Value)).ToList() ?? []; // Convert the dictionary into list of groups and later write them
 
 foreach (var group in groups)
@@ -202,27 +202,30 @@ foreach (var team in topTeams)
 
 {
     Console.WriteLine("\nQUARTERFINALS:");
+    var quarterfinalMatches = GenerateQuarterfinals(topTeams, random, 100);
     var quarterfinalWinners = t.SimulateRound(GenerateQuarterfinals(topTeams, random, 100));
 
     Console.WriteLine("\nSEMIFINALS:");
-    var semifinals = new List<(Tim, Tim)>
-{
-    (quarterfinalWinners[0], quarterfinalWinners[1]),  // Winner of QF1 vs Winner of QF2
-    (quarterfinalWinners[2], quarterfinalWinners[3])   
-};
-    var semifinalWinners = t.SimulateRound(semifinals);
-    var semifinalLosers = semifinals.Select(match => match.Item1 == semifinalWinners[0] || match.Item1 == semifinalWinners[1] ? match.Item2 : match.Item1).ToList();
+    var semifinalMatches = GenerateSemifinals(quarterfinalWinners, random); // Assuming you have a method to get semifinal matches
+    var semifinalWinners = t.SimulateRound(semifinalMatches);
+
+    var semifinalLosers = new List<Tim>();
+    foreach (var match in semifinalMatches)
+    {
+        var loser = (match.Team1 == semifinalWinners[0] || match.Team1 == semifinalWinners[1]) ? match.Team2 : match.Team1;
+        semifinalLosers.Add(loser);
+    }
 
     Console.WriteLine("\n3RD PLACE MATCH:");
-    var thirdPlaceMatch = (semifinalLosers[0], semifinalLosers[1]);
-    var thirdPlaceWinner = t.SimulateGame(thirdPlaceMatch.Item1, thirdPlaceMatch.Item2);
+    var thirdPlaceMatch = new Match(semifinalLosers[0], semifinalLosers[1]);
+    var thirdPlaceWinner = t.SimulateGame(thirdPlaceMatch.Team1, thirdPlaceMatch.Team2);
 
 
     Console.WriteLine("\nFINAL:");
-    var finalMatch = (semifinalWinners[0], semifinalWinners[1]);
-    var champion = t.SimulateGame(finalMatch.Item1, finalMatch.Item2);
+    var finalMatch = new Match(semifinalWinners[0], semifinalWinners[1]);
+    var champion = t.SimulateGame(finalMatch.Team1, finalMatch.Team2);
+    var finalLoser = (semifinalWinners[0] == champion) ? semifinalWinners[1] : semifinalWinners[0];
 
-    var finalLoser = finalMatch.Item1 == champion ? finalMatch.Item2 : finalMatch.Item1;
 
     Console.WriteLine($"\nGold Medal: {champion.Team}");
     Console.WriteLine($"Silver Medal: {finalLoser.Team}");
@@ -230,9 +233,9 @@ foreach (var team in topTeams)
 }
 
 
-List<(Tim, Tim)> GenerateQuarterfinals(List<Tim> topTeams, Random random, int maxRetries = 100) //  Return PAIR of teams
+List<Match> GenerateQuarterfinals(List<Tim> topTeams, Random random, int maxRetries = 100) //  Return PAIR of teams
 {
-    List<(Tim, Tim)>? quarterfinals = null;
+    List<Match>? quarterfinals = null;
 
     for (int attempt = 0; attempt < maxRetries; attempt++)
     {
@@ -252,7 +255,7 @@ List<(Tim, Tim)> GenerateQuarterfinals(List<Tim> topTeams, Random random, int ma
             if (potentialOpponents.Count != 0)
             {
                 var opponent = potentialOpponents[random.Next(potentialOpponents.Count)];
-                quarterfinals.Add((teamA, opponent));
+                quarterfinals.Add(new Match(teamA, opponent));
                 availableHatD.Remove(opponent); // Remove selected opponent from available Hat D
             }
             else
@@ -269,7 +272,7 @@ List<(Tim, Tim)> GenerateQuarterfinals(List<Tim> topTeams, Random random, int ma
             if (potentialOpponents.Count != 0)
             {
                 var opponent = potentialOpponents[random.Next(potentialOpponents.Count)];
-                quarterfinals.Add((teamB, opponent));
+                quarterfinals.Add(new Match(teamB, opponent));
                 availableHatC.Remove(opponent); // Remove selected opponent from available Hat C
             }
             else
@@ -278,7 +281,7 @@ List<(Tim, Tim)> GenerateQuarterfinals(List<Tim> topTeams, Random random, int ma
             }
         }
 
-        if (quarterfinals.Count == 4)   //  Sucessfuly generated
+        if (quarterfinals.Count == 4)   
         {
             return quarterfinals;  
         }
@@ -287,6 +290,73 @@ List<(Tim, Tim)> GenerateQuarterfinals(List<Tim> topTeams, Random random, int ma
     Console.WriteLine("Failed to generate valid quarterfinal pairs after 100 tries.");
     return quarterfinals;  
 }
+
+List<Match> GenerateSemifinals(List<Tim> quarterfinalsWinners, Random random)
+{
+    List<Match> semifinals = [];
+
+    
+    var hatMembership = new Dictionary<Tim, string>();  //  To see remaining teams in which hat do they belong
+
+    foreach (var team in quarterfinalsWinners)
+    {
+        if (hatA.Contains(team)) hatMembership[team] = "A";
+        else if (hatB.Contains(team)) hatMembership[team] = "B";
+        else if (hatC.Contains(team)) hatMembership[team] = "C";
+        else if (hatD.Contains(team)) hatMembership[team] = "D";
+    }
+
+    var hatAMembers = quarterfinalsWinners.Where(t => hatMembership[t] == "A").ToList();
+    var hatBMembers = quarterfinalsWinners.Where(t => hatMembership[t] == "B").ToList();
+    var hatCMembers = quarterfinalsWinners.Where(t => hatMembership[t] == "C").ToList();
+    var hatDMembers = quarterfinalsWinners.Where(t => hatMembership[t] == "D").ToList();
+
+    void CreateMatches(List<Tim> fromHat1, List<Tim> fromHat2)
+    {
+        while (fromHat1.Count > 0 && fromHat2.Count > 0 && semifinals.Count < 2)
+        {
+            var team1 = fromHat1.First();
+            var team2 = fromHat2.First();
+            semifinals.Add(new Match(team1, team2));
+            fromHat1.Remove(team1);
+            fromHat2.Remove(team2);
+        }
+    }
+
+    CreateMatches(hatAMembers, hatCMembers);
+    CreateMatches(hatAMembers, hatDMembers);
+    CreateMatches(hatBMembers, hatCMembers);
+    CreateMatches(hatBMembers, hatDMembers);
+
+    if (semifinals.Count < 2)   //  If there are no matches between hatA and hatC or hatD and same with hatB with hatC or hatD
+    {
+        var remainingTeams = new List<Tim>();
+        remainingTeams.AddRange(hatAMembers);
+        remainingTeams.AddRange(hatBMembers);
+        remainingTeams.AddRange(hatCMembers);
+        remainingTeams.AddRange(hatDMembers);
+
+        Shuffle(remainingTeams, random);
+
+        while (remainingTeams.Count >= 2 && semifinals.Count < 2)
+        {
+            var team1 = remainingTeams.First();
+            var team2 = remainingTeams.Skip(1).First();
+            semifinals.Add(new Match(team1, team2));
+            remainingTeams.Remove(team1);
+            remainingTeams.Remove(team2);
+        }
+    }
+
+    if (semifinals.Count < 2)
+    {
+        Console.WriteLine("Not enough valid pairs were created.");
+    }
+
+    return semifinals;
+}
+
+
 
 
 static void Shuffle<T>(List<T> list, Random random)
