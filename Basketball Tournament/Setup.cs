@@ -4,24 +4,28 @@ namespace Basketball_Tournament
 {
     public static class Setup
     {
-        public static List<Group> InitializeGroups(string filePath)
+        public static List<Group> LoadGroupsFromJson(string fileName)
         {
+            string projectDirectory = Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName ?? "";
+            string filePath = Path.Combine(projectDirectory, "Data", fileName);
             string jsonString = File.ReadAllText(filePath);
-            Dictionary<string, List<Tim>>? groupDictionary = JsonSerializer.Deserialize<Dictionary<string, List<Tim>>>(jsonString);
+
+            Dictionary<string, List<Tim>>? groupDictionary = JsonSerializer.Deserialize<Dictionary<string, List<Tim>>>(jsonString); //  So the group name acts as a key
+
             List<Group> groups = groupDictionary?.Select(g => new Group(g.Key, g.Value)).ToList() ?? [];
 
             foreach (var group in groups)
             {
                 foreach (var team in group.Teams)
                 {
-                    team.Group = group;  // Set the Group for each team
+                    team.Group = group;
                 }
             }
 
             return groups;
         }
 
-        public static List<(int, int)[]> GetPredefinedGameSchedule()
+        public static List<(int, int)[]> GetPredefinedGameSchedule()    //  Group game schedule
         {
             return
         [

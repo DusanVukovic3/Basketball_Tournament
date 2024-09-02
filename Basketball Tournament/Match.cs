@@ -6,8 +6,6 @@
         public Tim Team2 { get; set; } = team2;
         public string Result { get; set; } = "";    // 100 : 83
 
-        private static readonly Random random = new();
-
         public void SetResult(int scoreA, int scoreB)
         {
             Result = $"{scoreA} : {scoreB}";
@@ -39,17 +37,10 @@
         }
 
 
-
         public Tim GetWinner()
         {
             var (scoreA, scoreB) = GetScores();
             return scoreA > scoreB ? Team1 : Team2;
-        }
-
-        public Tim GetLoser()
-        {
-            var (scoreA, scoreB) = GetScores();
-            return scoreA > scoreB ? Team2 : Team1;
         }
 
 

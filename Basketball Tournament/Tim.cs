@@ -48,7 +48,7 @@
 
         private static void HandleOvertime(ref int score1, ref int score2, Tim team1, Tim team2)
         {
-            int overtimePointsTeam1 = random.Next(5, 20);   // Teams can get 5-20 points in 1 overtime
+            int overtimePointsTeam1 = random.Next(5, 20);   // Teams can get 5-20 points in 1 overtime, but because it's overtime, FIBARank doesn't matter anymore
             int overtimePointsTeam2 = random.Next(5, 20);
 
             score1 += overtimePointsTeam1;
