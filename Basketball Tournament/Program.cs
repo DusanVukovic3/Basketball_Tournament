@@ -1,10 +1,6 @@
 ﻿using Basketball_Tournament;
 
-Random random = new();
-List<Match> matchesList = [];
-
-string filePath = Setup.GetFilePath();
-List<Group> groups = Setup.InitializeGroups(filePath);
+List<Group> groups = Setup.LoadGroupsFromJson("groups.json");
 List<(int, int)[]> legs = Setup.GetPredefinedGameSchedule();
 
 Tim t = new();
@@ -42,6 +38,7 @@ var rank1Teams = new List<Tim>();
 var rank2Teams = new List<Tim>();
 var rank3Teams = new List<Tim>();
 
+<<<<<<< Updated upstream
 foreach (var g in groups)
 {
     rank1Teams.AddRange(g.Teams.Where(t => t.OverallRank == 1));    //  Collect teams by rank from all groups
@@ -78,9 +75,15 @@ var hatA = topTeams.Take(2).ToList();
 var hatB = topTeams.Skip(2).Take(2).ToList();
 var hatC = topTeams.Skip(4).Take(2).ToList();
 var hatD = topTeams.Skip(6).Take(2).ToList();
+=======
+var topTeams = hatA.Concat(hatB).Concat(hatC).Concat(hatD).Take(8).ToList();
+>>>>>>> Stashed changes
 
-int num2 = 1;
+var tournament = new Tournament();
 
+tournament.SimulateKnockout(topTeams, t);
+
+<<<<<<< Updated upstream
 Console.WriteLine("\nKnockout Phase:");
 foreach (var team in topTeams)
 {
@@ -254,6 +257,8 @@ static void Shuffle<T>(List<T> list, Random random)
         (list[i], list[j]) = (list[j], list[i]);
     }
 }
+=======
+>>>>>>> Stashed changes
 
 
 
