@@ -27,13 +27,11 @@ foreach (var leg in legs)   // Simulate each leg
 
             Tim winner = t.SimulateGame(teamA, teamB);
 
-            //group.Matches.Add(match);
 
         }
     }
     num++;
 }
-
 
 Console.WriteLine("\nFinal Standings by Group:");   //  Print final group standings
 var groupSorter = new GroupSorter(groups);
@@ -124,7 +122,7 @@ foreach (var team in topTeams)
 }
 
 
-List<Match> GenerateQuarterfinals(List<Tim> topTeams, int maxRetries = 100) //  Return PAIR of teams
+List<Match> GenerateQuarterfinals(List<Tim> topTeams, int maxRetries = 100)
 {
     List<Match>? quarterfinals = null;
 
@@ -246,8 +244,6 @@ List<Match> GenerateSemifinals(List<Tim> quarterfinalsWinners, Random random)
 
     return semifinals;
 }
-
-
 
 
 static void Shuffle<T>(List<T> list, Random random)

@@ -3,24 +3,10 @@
     public class GroupSorter
     {
         private readonly List<Group> _groups;
-        private readonly Dictionary<(Tim, Tim), Match> _matchDictionary = [];
 
         public GroupSorter(List<Group> groups)
         {
             _groups = groups;
-            InitializeMatchDictionary();
-        }
-
-        private void InitializeMatchDictionary()
-        {
-            foreach (var group in _groups)
-            {
-                foreach (var match in group.Matches)
-                {
-                    _matchDictionary[(match.Team1, match.Team2)] = match;
-                    _matchDictionary[(match.Team2, match.Team1)] = match;
-                }
-            }
         }
 
         public void SortTeamsInGroups()
@@ -29,44 +15,88 @@
             {
                 Console.WriteLine($"\nGroup {group.GroupName}:");
 
-                var sortedTeams = group.Teams
+                var sortedTeams = group.Teams   //  Sort by points
                     .OrderByDescending(t => t.PointsInGroup)
                     .ToList();
 
-                ResolveTies(sortedTeams);
+                sortedTeams = ResolveTies(sortedTeams);
 
-                sortedTeams = [.. sortedTeams
-                    .OrderByDescending(t => t.PointsInGroup)
-                    .ThenByDescending(t => t.PointsScored - t.PointsConceded)];
-
-                AssignRanks(sortedTeams);
+                AssignRanks(sortedTeams);  
 
                 PrintTeamDetails(sortedTeams);
             }
         }
 
-        private void ResolveTies(List<Tim> sortedTeams)
+        private List<Tim> ResolveTies(List<Tim> sortedTeams)
         {
-            for (int i = 0; i < sortedTeams.Count - 1; i++)
-            {
-                for (int j = i + 1; j < sortedTeams.Count; j++)
-                {
-                    if (sortedTeams[i].PointsInGroup == sortedTeams[j].PointsInGroup)
-                    {
-                        var match = _matchDictionary.TryGetValue((sortedTeams[i], sortedTeams[j]), out var foundMatch) ? foundMatch :
-                                    _matchDictionary.TryGetValue((sortedTeams[j], sortedTeams[i]), out foundMatch) ? foundMatch : null;
+            int i = 0;
 
-                        if (match != null)
+            while (i < sortedTeams.Count - 1)
+            {
+                int j = i + 1;
+
+                while (j < sortedTeams.Count && sortedTeams[i].PointsInGroup == sortedTeams[j].PointsInGroup)
+                {
+                    j++;
+                }
+
+                if (j - i == 2) // Two teams tie
+                {
+                    var teamA = sortedTeams[i];
+                    var teamB = sortedTeams[i + 1];
+
+                    var match = FindHeadToHeadMatch(teamA, teamB);
+
+
+                    if (match != null)
+                    {
+                        var winner = match.GetWinner();
+
+                        if (winner == teamB)
                         {
-                            var winner = match.GetWinner();
-                            if (winner == sortedTeams[j])
-                            {
-                                (sortedTeams[i], sortedTeams[j]) = (sortedTeams[j], sortedTeams[i]);
-                            }
+                            (sortedTeams[i], sortedTeams[i + 1]) = (sortedTeams[i + 1], sortedTeams[i]);
+                        }
+                    }
+                    else
+                    {
+
+                        if (sortedTeams[i].PointsScored - sortedTeams[i].PointsConceded <
+                            sortedTeams[i + 1].PointsScored - sortedTeams[i + 1].PointsConceded)
+                        {
+ 
+                            (sortedTeams[i], sortedTeams[i + 1]) = (sortedTeams[i + 1], sortedTeams[i]);
                         }
                     }
                 }
+                else if (j - i > 2) //  Three teams tie
+                {
+                    
+                    var subList = sortedTeams.GetRange(i, j - i)
+                        .OrderByDescending(t => t.PointsScored - t.PointsConceded)
+                        .ToList();
+
+
+                    sortedTeams.RemoveRange(i, j - i);
+                    sortedTeams.InsertRange(i, subList);
+                }
+
+                i = j; 
             }
+
+            return sortedTeams;
+        }
+
+        private Match? FindHeadToHeadMatch(Tim teamA, Tim teamB)
+        {
+            var match = teamA.MatchesList.FirstOrDefault(m =>
+                (m.Team1 == teamA && m.Team2 == teamB) || (m.Team1 == teamB && m.Team2 == teamA));
+
+            if (match == null)
+            {
+                Console.WriteLine($"No match found for {teamA.Team} vs {teamB.Team}");
+            }
+
+            return match;
         }
 
         private static void AssignRanks(List<Tim> sortedTeams)
@@ -85,6 +115,6 @@
                 Console.WriteLine($"{team.OverallRank}) {team.Team}: Pts: {team.PointsInGroup} | PointsScored: {team.PointsScored} | PointsConceded: {team.PointsConceded} | +/-: {team.PointsScored - team.PointsConceded}");
             }
         }
+
     }
 }
-

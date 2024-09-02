@@ -35,16 +35,14 @@
             Match match = new(team1, team2);
             match.SetResult(score1, score2);
 
-            MatchesList.Add(match);  // Ensure MatchesList is initialized correctly
+            team1.MatchesList.Add(match);   //  For grouping later
+            team2.MatchesList.Add(match);
+            MatchesList.Add(match);  
 
             UpdateTeamPoints(score1, score2, team1, team2);
             UpdateScoringStats(score1, score2, team1, team2);
 
-            /*if(team1.Group.GroupName == team2.Group.GroupName && team1.OverallRank == 0 && team2.OverallRank == 0)  //  For group phase
-            {
-                team1.Group.Matches.Add(match);
-            }*/
-
+         
             return score1 > score2 ? team1 : team2; 
         }
 
