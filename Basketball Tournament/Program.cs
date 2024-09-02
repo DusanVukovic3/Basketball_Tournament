@@ -26,8 +26,6 @@ foreach (var leg in legs)   // Simulate each leg
             var teamB = teams[j];
 
             Tim winner = t.SimulateGame(teamA, teamB);
-
-
         }
     }
     num++;
@@ -37,56 +35,18 @@ Console.WriteLine("\nFinal Standings by Group:");   //  Print final group standi
 var groupSorter = new GroupSorter(groups);
 groupSorter.SortTeamsInGroups();
 
+var hatsDTO = Setup.GetHats(groups);
 
-var rank1Teams = new List<Tim>();
-var rank2Teams = new List<Tim>();
-var rank3Teams = new List<Tim>();
+var hatA = hatsDTO.HatA;
+var hatB = hatsDTO.HatB;
+var hatC = hatsDTO.HatC;
+var hatD = hatsDTO.HatD;
 
-foreach (var g in groups)
-{
-    rank1Teams.AddRange(g.Teams.Where(t => t.OverallRank == 1));    //  Collect teams by rank from all groups
-    rank2Teams.AddRange(g.Teams.Where(t => t.OverallRank == 2));
-    rank3Teams.AddRange(g.Teams.Where(t => t.OverallRank == 3));
-}
-
-var sortedRank1Teams = rank1Teams
-    .OrderByDescending(t => t.PointsInGroup)
-    .ThenByDescending(t => t.PointsScored - t.PointsConceded)
-    .ThenByDescending(t => t.PointsScored)
-    .ToList();
-
-var sortedRank2Teams = rank2Teams
-    .OrderByDescending(t => t.PointsInGroup)
-    .ThenByDescending(t => t.PointsScored - t.PointsConceded)
-    .ThenByDescending(t => t.PointsScored)
-    .ToList();
-
-var sortedRank3Teams = rank3Teams
-    .OrderByDescending(t => t.PointsInGroup)
-    .ThenByDescending(t => t.PointsScored - t.PointsConceded)
-    .ThenByDescending(t => t.PointsScored)
-    .ToList();
-
-
-var topTeams = sortedRank1Teams
-.Concat(sortedRank2Teams)
-.Concat(sortedRank3Teams)
-.Take(8) // Select only the top 8 teams
-.ToList();
-
-var hatA = topTeams.Take(2).ToList();
-var hatB = topTeams.Skip(2).Take(2).ToList();
-var hatC = topTeams.Skip(4).Take(2).ToList();
-var hatD = topTeams.Skip(6).Take(2).ToList();
+var topTeams = hatA.Concat(hatB).Concat(hatC).Concat(hatD).ToList();
 
 int num2 = 1;
 
-Console.WriteLine("\nKnockout Phase:");
-foreach (var team in topTeams)
-{
-    Console.WriteLine($"{num2}){team.Team} ");
-    num2++;
-}
+
 
 
 {

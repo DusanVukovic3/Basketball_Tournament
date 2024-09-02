@@ -38,6 +38,62 @@ namespace Basketball_Tournament
         }
 
 
+        public static HatsDto GetHats(List<Group> groups)
+        {
+            var rank1Teams = new List<Tim>();
+            var rank2Teams = new List<Tim>();
+            var rank3Teams = new List<Tim>();
+
+            foreach (var g in groups)
+            {
+                rank1Teams.AddRange(g.Teams.Where(t => t.OverallRank == 1));
+                rank2Teams.AddRange(g.Teams.Where(t => t.OverallRank == 2));
+                rank3Teams.AddRange(g.Teams.Where(t => t.OverallRank == 3));
+            }
+
+            var sortedRank1Teams = rank1Teams
+                .OrderByDescending(t => t.PointsInGroup)
+                .ThenByDescending(t => t.PointsScored - t.PointsConceded)
+                .ThenByDescending(t => t.PointsScored)
+                .ToList();
+
+            var sortedRank2Teams = rank2Teams
+                .OrderByDescending(t => t.PointsInGroup)
+                .ThenByDescending(t => t.PointsScored - t.PointsConceded)
+                .ThenByDescending(t => t.PointsScored)
+                .ToList();
+
+            var sortedRank3Teams = rank3Teams
+                .OrderByDescending(t => t.PointsInGroup)
+                .ThenByDescending(t => t.PointsScored - t.PointsConceded)
+                .ThenByDescending(t => t.PointsScored)
+                .ToList();
+
+            var topTeams = sortedRank1Teams
+                .Concat(sortedRank2Teams)
+                .Concat(sortedRank3Teams)
+                .Take(8) // Top 8 teams
+                .ToList();
+
+            var hats = new HatsDto
+            {
+                HatA = topTeams.Take(2).ToList(),
+                HatB = topTeams.Skip(2).Take(2).ToList(),
+                HatC = topTeams.Skip(4).Take(2).ToList(),
+                HatD = topTeams.Skip(6).Take(2).ToList()
+            };
+
+            int num2 = 1;
+
+            Console.WriteLine("\nKnockout Phase:");
+            foreach (var team in topTeams)
+            {
+                Console.WriteLine($"{num2}){team.Team} ");
+                num2++;
+            }
+
+            return hats;
+        }
 
     }
 }
