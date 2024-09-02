@@ -1,21 +1,18 @@
-﻿using System;
-
-namespace Basketball_Tournament
+﻿namespace Basketball_Tournament
 {
     public class Tournament
     {
         private static readonly Random random = new();
 
-        public void SimulateKnockout(List<Tim> top8, Tim t)
+        public static void SimulateKnockout(HatsDto hats, Tim t)
         {
-            var hatsDTO = Setup.GetHats(Setup.LoadGroupsFromJson("groups.json"));
-
+           
             Console.WriteLine("\nQUARTERFINALS:");
-            var quarterfinalMatches = GenerateQuarterfinals(top8, hatsDTO);
+            var quarterfinalMatches = GenerateQuarterfinals( hats );
             var quarterfinalWinners = t.SimulateRound(quarterfinalMatches);
 
             Console.WriteLine("\nSEMIFINALS:");
-            var semifinalMatches = GenerateSemifinals(quarterfinalWinners, hatsDTO);
+            var semifinalMatches = GenerateSemifinals(quarterfinalWinners, hats);
             var semifinalWinners = t.SimulateRound(semifinalMatches);
 
             var semifinalLosers = new List<Tim>();
@@ -39,63 +36,52 @@ namespace Basketball_Tournament
             Console.WriteLine($"Bronze Medal: {thirdPlaceWinner.Team}");
         }
 
-
-        public static List<Match> GenerateQuarterfinals(List<Tim> top8, HatsDto hatsDTO)
+        static List<Match> GenerateQuarterfinals(HatsDto dto)
         {
-            List<Match>? quarterfinals = null;
+            List<Match> quarterfinals = [];
 
             for (int attempt = 0; attempt < 100; attempt++)
             {
-                Shuffle(hatsDTO.HatA, random);
-                Shuffle(hatsDTO.HatB, random);
-                Shuffle(hatsDTO.HatC, random);
-                Shuffle(hatsDTO.HatD, random);
+                var shuffledHatA = dto.HatA.OrderBy(t => random.Next()).ToList();
+                var shuffledHatB = dto.HatB.OrderBy(t => random.Next()).ToList();
+                var shuffledHatC = dto.HatC.OrderBy(t => random.Next()).ToList();
+                var shuffledHatD = dto.HatD.OrderBy(t => random.Next()).ToList();
 
-                quarterfinals = [];
+                var availableHatD = new List<Tim>(shuffledHatD);
+                var availableHatC = new List<Tim>(shuffledHatC);
 
-                var availableHatD = new List<Tim>(hatsDTO.HatD);  
-                foreach (var teamA in hatsDTO.HatA)
+                quarterfinals.Clear();
+
+                var hatAAndDMatches = new List<Match>();
+                for (int i = 0; i < shuffledHatA.Count; i++)
                 {
-                    var potentialOpponents = availableHatD.Where(teamD => teamD.Group != teamA.Group).ToList();
-
-                    if (potentialOpponents.Count != 0)
-                    {
-                        var opponent = potentialOpponents[random.Next(potentialOpponents.Count)];
-                        quarterfinals.Add(new Match(teamA, opponent));
-                        availableHatD.Remove(opponent); // Remove selected opponent from available Hat D
-                    }
-                    else
-                    {
-                        break;  // If we can't get valid pairs, retry
-                    }
+                    var teamA = shuffledHatA[i];
+                    var teamD = shuffledHatD[i];
+                    hatAAndDMatches.Add(new Match(teamA, teamD));
                 }
 
-                var availableHatC = new List<Tim>(hatsDTO.HatC);
-                foreach (var teamB in hatsDTO.HatB)
+                var hatBAndCMatches = new List<Match>();
+                for (int i = 0; i < shuffledHatB.Count; i++)
                 {
-                    var potentialOpponents = availableHatC.Where(teamC => teamC.Group != teamB.Group).ToList();
-
-                    if (potentialOpponents.Count != 0)
-                    {
-                        var opponent = potentialOpponents[random.Next(potentialOpponents.Count)];
-                        quarterfinals.Add(new Match(teamB, opponent));
-                        availableHatC.Remove(opponent); 
-                    }
-                    else
-                    {
-                        break;
-                    }
+                    var teamB = shuffledHatB[i];
+                    var teamC = shuffledHatC[i];
+                    hatBAndCMatches.Add(new Match(teamB, teamC));
                 }
+
+                quarterfinals.AddRange(hatAAndDMatches);
+                quarterfinals.AddRange(hatBAndCMatches);
 
                 if (quarterfinals.Count == 4)
                 {
-                    return quarterfinals;
+                    return quarterfinals; 
                 }
             }
 
             Console.WriteLine("Failed to generate valid quarterfinal pairs after 100 tries.");
-            return quarterfinals;
+            return quarterfinals; 
         }
+
+
 
         public static List<Match> GenerateSemifinals(List<Tim> quarterfinalsWinners, HatsDto hatsDTO)
         {

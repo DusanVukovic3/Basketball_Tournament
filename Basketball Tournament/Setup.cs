@@ -8,12 +8,7 @@ namespace Basketball_Tournament
         {
             string projectDirectory = Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName ?? "";
             string filePath = Path.Combine(projectDirectory, "Data", fileName);
-
-            //Console.WriteLine($"Loading JSON from: {filePath}");
-
             string jsonString = File.ReadAllText(filePath);
-
-            //Console.WriteLine($"JSON content:\n{jsonString}");
 
             Dictionary<string, List<Tim>>? groupDictionary = JsonSerializer.Deserialize<Dictionary<string, List<Tim>>>(jsonString); //  So the group name acts as a key
 
@@ -30,7 +25,7 @@ namespace Basketball_Tournament
             return groups;
         }
 
-        public static List<(int, int)[]> GetPredefinedGameSchedule()
+        public static List<(int, int)[]> GetPredefinedGameSchedule()    //  Group game schedule
         {
             return
         [
@@ -40,7 +35,6 @@ namespace Basketball_Tournament
         ];
         }
 
-<<<<<<< Updated upstream
         public static string GetFilePath()
         {
             string projectDirectory = Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName ?? "";
@@ -48,10 +42,8 @@ namespace Basketball_Tournament
         }
 
 
-=======
         public static HatsDto GetHats(List<Group> groups)
         {
-
             var rank1Teams = new List<Tim>();
             var rank2Teams = new List<Tim>();
             var rank3Teams = new List<Tim>();
@@ -106,7 +98,6 @@ namespace Basketball_Tournament
 
             return hats;
         }
->>>>>>> Stashed changes
 
     }
 }

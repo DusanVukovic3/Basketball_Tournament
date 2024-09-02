@@ -1,13 +1,8 @@
 ﻿namespace Basketball_Tournament
 {
-    public class GroupSorter
+    public class GroupSorter(List<Group> groups)
     {
-        private readonly List<Group> _groups;
-
-        public GroupSorter(List<Group> groups)
-        {
-            _groups = groups;
-        }
+        private readonly List<Group> _groups = groups;
 
         public void SortTeamsInGroups()
         {
@@ -27,7 +22,7 @@
             }
         }
 
-        private List<Tim> ResolveTies(List<Tim> sortedTeams)
+        private static List<Tim> ResolveTies(List<Tim> sortedTeams)
         {
             int i = 0;
 
@@ -86,7 +81,7 @@
             return sortedTeams;
         }
 
-        private Match? FindHeadToHeadMatch(Tim teamA, Tim teamB)
+        private static Match? FindHeadToHeadMatch(Tim teamA, Tim teamB)
         {
             var match = teamA.MatchesList.FirstOrDefault(m =>
                 (m.Team1 == teamA && m.Team2 == teamB) || (m.Team1 == teamB && m.Team2 == teamA));
