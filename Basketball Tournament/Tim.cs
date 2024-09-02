@@ -40,6 +40,11 @@
             UpdateTeamPoints(score1, score2, team1, team2);
             UpdateScoringStats(score1, score2, team1, team2);
 
+            /*if(team1.Group.GroupName == team2.Group.GroupName && team1.OverallRank == 0 && team2.OverallRank == 0)  //  For group phase
+            {
+                team1.Group.Matches.Add(match);
+            }*/
+
             return score1 > score2 ? team1 : team2; 
         }
 

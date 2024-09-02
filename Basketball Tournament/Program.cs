@@ -1,38 +1,13 @@
 ﻿using Basketball_Tournament;
-using System.Text.Json;
-using static System.Formats.Asn1.AsnWriter;
 
-string projectDirectory = Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName ?? "";    //  Absolute path to groups.json
-string filePath = Path.Combine(projectDirectory, "Data", "groups.json");
-string jsonString = File.ReadAllText(filePath);
-
-Dictionary<string, List<Tim>>? groupDictionary = JsonSerializer.Deserialize<Dictionary<string, List<Tim>>>(jsonString); //  A, B, C are keys; thats why I'm using dictionary
-List<Group> groups = groupDictionary?.Select(g => new Group(g.Key, g.Value)).ToList() ?? []; // Convert the dictionary into list of groups and later write them
-
-foreach (var group in groups)
-{
-    foreach (var team in group.Teams)
-    {
-        team.Group = group;  // Set the Group for each team
-    }
-}
-
-
-Tim t = new();
 Random random = new();
 List<Match> matchesList = [];
 
-List<(int, int)[]> legs =   // Predefined games schedule
-    [
-        [(0, 1), (2, 3)],
-        [(0, 2), (1, 3)],
-        [(0, 3), (1, 2)]
-    ];
+string filePath = Setup.GetFilePath();
+List<Group> groups = Setup.InitializeGroups(filePath);
+List<(int, int)[]> legs = Setup.GetPredefinedGameSchedule();
 
-foreach (Group group in groups)
-{
-    matchesList.AddRange(group.Matches);
-}
+Tim t = new();
 
 int num = 1;
 
@@ -50,47 +25,9 @@ foreach (var leg in legs)   // Simulate each leg
             var teamA = teams[i];
             var teamB = teams[j];
 
-            double rankDifference = (double)Math.Abs(teamA.FIBARanking - teamB.FIBARanking);    // Based on difference in rank, simulate score
-            double scoreDifference = rankDifference * random.NextDouble();  
+            Tim winner = t.SimulateGame(teamA, teamB);
 
-            int scoreA = random.Next(60, 120) + (int)(scoreDifference / 2);  // Team will get at least 60 points and at most 120
-            int scoreB = random.Next(60, 120) - (int)(scoreDifference / 2);
-
-            while (scoreA == scoreB)
-            {
-                int overtimePointsTeam1 = random.Next(5, 20);   //  teams can get 5-20 points in 1 overtime, the overtime will continue until there is no longer a tie
-                int overtimePointsTeam2 = random.Next(5, 20);   //  I made sure there is no more difference in FIBARanking because if teams get to overtime, that means they're pretty evenly matched
-
-                scoreA += overtimePointsTeam1;
-                scoreB += overtimePointsTeam2;
-
-                Console.WriteLine($"\nOvertime : {teamA.Team} vs {teamB.Team} ({overtimePointsTeam1}:{overtimePointsTeam2}) ");
-            }
-
-            Console.WriteLine($"{teamA.Team} vs {teamB.Team} ({scoreA}:{scoreB})");
-
-            Match match = new(teamA, teamB);    //  Just after simulating match do we have a list with some elements   
-            match.SetResult(scoreA, scoreB);
-            matchesList.Add(match);
-
-            group.Matches.Add(match);
-
-
-            if (scoreA > scoreB)
-            {
-                teamA.PointsInGroup += 2;    // Group points
-                teamB.PointsInGroup += 1;
-            }
-            else
-            {
-                teamA.PointsInGroup += 1;    
-                teamB.PointsInGroup += 2;
-            }
-
-            teamA.PointsScored += scoreA;
-            teamA.PointsConceded += scoreB;
-            teamB.PointsScored += scoreB;
-            teamB.PointsConceded += scoreA;
+            //group.Matches.Add(match);
 
         }
     }
@@ -98,61 +35,14 @@ foreach (var leg in legs)   // Simulate each leg
 }
 
 
-Console.WriteLine("\nFinal Standings by Group:");
-foreach (var group in groups)   //  Sorting groups by points, if 2 teams same then h2h and if 3 teams same the +/-
-{
-    Console.WriteLine($"\nGroup {group.GroupName}:");
+Console.WriteLine("\nFinal Standings by Group:");   //  Print final group standings
+var groupSorter = new GroupSorter(groups);
+groupSorter.SortTeamsInGroups();
 
-    var matchDictionary = group.Matches.ToDictionary(
-        m => (m.Team1, m.Team2),
-        m => m
-    );
-
-    var sortedTeams = group.Teams
-        .OrderByDescending(t => t.PointsInGroup).ToList();
-
-    for (int i = 0; i < sortedTeams.Count - 1; i++) 
-    {
-        for (int j = i + 1; j < sortedTeams.Count; j++) //  For every team, go through all the opponents
-        {
-            if (sortedTeams[i].PointsInGroup == sortedTeams[j].PointsInGroup)
-            {
-                var match = matchDictionary.TryGetValue((sortedTeams[i], sortedTeams[j]), out var foundMatch) ? foundMatch :    
-                            matchDictionary.TryGetValue((sortedTeams[j], sortedTeams[i]), out foundMatch) ? foundMatch : null;
-
-                if (match != null)
-                {
-                    var winner = match.GetWinner();
-                    if (winner == sortedTeams[j])
-                    {
-                        
-                        (sortedTeams[i], sortedTeams[j]) = (sortedTeams[j], sortedTeams[i]);
-                    }
-                }
-            }
-        }
-    }
-
-    sortedTeams = [.. sortedTeams.OrderByDescending(t => t.PointsInGroup).ThenByDescending(t => t.PointsScored - t.PointsConceded).ToList()];   
-
-    int rank = 1;
-    foreach(var team in sortedTeams)
-    {
-        team.OverallRank = rank++;
-    }
-
-    foreach (var team in sortedTeams)
-    {
-        Console.WriteLine($"{team.OverallRank}) {team.Team}: Pts : {team.PointsInGroup} | PointsScored : {team.PointsScored} | PointsConceded : {team.PointsConceded} | +/- : {team.PointsScored - team.PointsConceded} "); 
-    }
-
-    
-}
 
 var rank1Teams = new List<Tim>();
 var rank2Teams = new List<Tim>();
 var rank3Teams = new List<Tim>();
-
 
 foreach (var g in groups)
 {
@@ -192,6 +82,7 @@ var hatC = topTeams.Skip(4).Take(2).ToList();
 var hatD = topTeams.Skip(6).Take(2).ToList();
 
 int num2 = 1;
+
 Console.WriteLine("\nKnockout Phase:");
 foreach (var team in topTeams)
 {
@@ -202,8 +93,8 @@ foreach (var team in topTeams)
 
 {
     Console.WriteLine("\nQUARTERFINALS:");
-    var quarterfinalMatches = GenerateQuarterfinals(topTeams, random, 100);
-    var quarterfinalWinners = t.SimulateRound(GenerateQuarterfinals(topTeams, random, 100));
+    var quarterfinalMatches = GenerateQuarterfinals(topTeams, 100);
+    var quarterfinalWinners = t.SimulateRound(GenerateQuarterfinals(topTeams, 100));
 
     Console.WriteLine("\nSEMIFINALS:");
     var semifinalMatches = GenerateSemifinals(quarterfinalWinners, random); // Assuming you have a method to get semifinal matches
@@ -233,7 +124,7 @@ foreach (var team in topTeams)
 }
 
 
-List<Match> GenerateQuarterfinals(List<Tim> topTeams, Random random, int maxRetries = 100) //  Return PAIR of teams
+List<Match> GenerateQuarterfinals(List<Tim> topTeams, int maxRetries = 100) //  Return PAIR of teams
 {
     List<Match>? quarterfinals = null;
 
