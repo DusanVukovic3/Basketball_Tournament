@@ -36,5 +36,8 @@ namespace Basketball_Tournament
             string projectDirectory = Directory.GetParent(Environment.CurrentDirectory)?.Parent?.Parent?.FullName ?? "";
             return Path.Combine(projectDirectory, "Data", "groups.json");
         }
+
+
+
     }
 }

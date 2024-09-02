@@ -91,11 +91,11 @@ foreach (var team in topTeams)
 
 {
     Console.WriteLine("\nQUARTERFINALS:");
-    var quarterfinalMatches = GenerateQuarterfinals(topTeams, 100);
-    var quarterfinalWinners = t.SimulateRound(GenerateQuarterfinals(topTeams, 100));
+    var quarterfinalMatches = GenerateQuarterfinals(topTeams, 100); //  get 4 matches
+    var quarterfinalWinners = t.SimulateRound(GenerateQuarterfinals(topTeams, 100));    //  get 4 winners
 
     Console.WriteLine("\nSEMIFINALS:");
-    var semifinalMatches = GenerateSemifinals(quarterfinalWinners, random); // Assuming you have a method to get semifinal matches
+    var semifinalMatches = GenerateSemifinals(quarterfinalWinners, random); 
     var semifinalWinners = t.SimulateRound(semifinalMatches);
 
     var semifinalLosers = new List<Tim>();
